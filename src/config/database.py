@@ -66,24 +66,80 @@ class RedshiftConnection:
         Raises:
             Exception: If query execution fails
         """
+        conn = None
+        cursor = None
+        
         try:
+            # Verify query is not empty
+            if not query or not query.strip():
+                raise ValueError("Query cannot be empty")
+                
+            # Check query starts with SELECT (security)
+            if not query.lower().strip().startswith('select'):
+                raise ValueError("Only SELECT queries are allowed")
+            
+            print(f"Connecting to Redshift using: host={self.config.redshift_host}, db={self.config.redshift_database}, user={self.config.redshift_username}")
+            
             # Use a new connection for each query
             conn = self.get_connection()
             
             # Execute query and get results
             cursor = conn.cursor()
+            
+            print(f"Executing query: {query[:200]}...")
+            
+            # Try executing with timeout protection
             cursor.execute(query)
             
             # Convert to DataFrame
+            print("Query executed successfully. Fetching results...")
             result = cursor.fetch_dataframe()
             
-            # Close the cursor and connection
-            cursor.close()
-            conn.close()
+            row_count = len(result) if result is not None else 0
+            print(f"Results fetched. Row count: {row_count}")
             
+            # Return empty DataFrame if None
+            if result is None:
+                print("Warning: Query returned None. Converting to empty DataFrame")
+                return pd.DataFrame()
+                
             return result
+            
         except Exception as e:
-            raise Exception(f"Error executing query: {str(e)}")
+            # Provide detailed error message
+            error_type = type(e).__name__
+            error_msg = str(e)
+            
+            print(f"Database Error ({error_type}): {error_msg}")
+            
+            if "timeout" in error_msg.lower():
+                error_details = "Query timed out. Please try a simpler query or add more filter conditions."
+            elif "permission" in error_msg.lower() or "privileges" in error_msg.lower():
+                error_details = "Insufficient permissions to execute query on this table/schema."
+            elif "relation" in error_msg.lower() and "not exist" in error_msg.lower():
+                error_details = f"Table not found in database. Make sure you're using the correct table name with schema prefix."
+            elif "syntax error" in error_msg.lower():
+                error_details = "SQL syntax error in query."
+            else:
+                error_details = f"Error executing query: {error_msg}"
+                
+            raise Exception(error_details)
+            
+        finally:
+            # Ensure resources are always closed properly
+            try:
+                if cursor is not None:
+                    cursor.close()
+                    print("Database cursor closed")
+            except Exception as cursor_err:
+                print(f"Warning: Error closing cursor: {str(cursor_err)}")
+                
+            try:
+                if conn is not None:
+                    conn.close()
+                    print("Database connection closed")
+            except Exception as conn_err:
+                print(f"Warning: Error closing connection: {str(conn_err)}")
     
     def get_table_schema(self, table_name: str, schema: str = None) -> Dict[str, Any]:
         """

@@ -81,18 +81,18 @@ For the Data Analyst, provide:
 
 ### 3. Results Interpretation
 When receiving technical analysis:
-- Translate technical findings into business language
-- Provide context about what the numbers mean
-- Identify trends, patterns, and anomalies
-- Highlight business implications
-- Suggest actionable next steps
+- FIRST verify if actual data exists - be honest when no data is available for a time period
+- NEVER invent or fabricate data that doesn't exist in the technical results
+- Translate technical findings into business language only if data exists
+- Identify trends, patterns, and anomalies from real data only
+- Highlight business implications based only on actual data
 
 ### 4. Communication Style
 - Use clear, business-friendly language
+- Be concise and direct by default - focus on answering the question precisely
+- Only provide detailed analysis, recommendations or context when explicitly requested
 - Avoid technical jargon when speaking to users
-- Provide context for all metrics and percentages
-- Include relevant comparisons and benchmarks
-- Focus on actionable insights
+- Provide minimal context for metrics - just enough to make them understandable
 
 ## Business Intelligence Framework
 
@@ -211,34 +211,89 @@ Format your response as a structured analysis that I can use to coordinate with 
         Returns:
             Dictionary with business synthesis
         """
-        synthesis_prompt = f"""
+        # Check if user has requested for detailed analysis
+        user_wants_details = False
+        if conversation_history:
+            for entry in conversation_history:
+                if isinstance(entry, dict) and entry.get("role") == "user":
+                    content = entry.get("content", "").lower()
+                    if any(phrase in content for phrase in ["más detalles", "más información", "explica", "explícame", 
+                                                           "recomendaciones", "insights", "explain", "more details", 
+                                                           "more information", "recommendations", "elaborate", "analyze"]):
+                        user_wants_details = True
+                        break
+                elif isinstance(entry, tuple) and len(entry) == 2 and entry[0] == "user":
+                    content = entry[1].lower()
+                    if any(phrase in content for phrase in ["más detalles", "más información", "explica", "explícame", 
+                                                           "recomendaciones", "insights", "explain", "more details", 
+                                                           "more information", "recommendations", "elaborate", "analyze"]):
+                        user_wants_details = True
+                        break
+        
+        # The current question might also have details request
+        current_q_lower = user_question.lower()
+        if any(phrase in current_q_lower for phrase in ["más detalles", "más información", "explica", "explícame", 
+                                                        "recomendaciones", "insights", "explain", "more details", 
+                                                        "more information", "recommendations", "elaborate", "analyze"]):
+            user_wants_details = True
+        
+        # Choose the appropriate prompt based on user preference
+        if user_wants_details:
+            synthesis_prompt = f"""
 **Original User Question**: {user_question}
 
 **Technical Analysis Results**: 
 {technical_analysis}
 
-As a Business Analyst, please synthesize this technical analysis into a comprehensive business response:
+As a Business Analyst, provide a detailed analysis of these results:
 
-1. **Executive Summary**: Brief, clear answer to the user's question
+1. **Data Availability Check**:
+   - First, verify if actual data is available in the technical results
+   - If there's no data or empty results, clearly state "No data available for [time period/criteria]"
+   - DO NOT invent or fabricate metrics if they're not in the technical analysis
 
-2. **Key Findings**: 
-   - Main metrics and performance indicators
-   - Important trends or patterns
-   - Notable insights or anomalies
+2. If data IS available, provide:
 
-3. **Business Context**:
-   - What these numbers mean for the business
-   - How performance compares to expectations
-   - Factors that might influence these results
+   a. **Answer**: Start with a clear, direct answer to the user's question
 
-4. **Actionable Recommendations**:
-   - Specific actions the business should consider
-   - Areas for optimization or improvement
-   - Next steps for deeper analysis
+   b. **Key Findings**: 
+      - Main metrics and performance indicators from the data
+      - Important trends or patterns observed
+      - Notable insights or anomalies
 
-5. **Additional Questions**: What follow-up questions might be valuable?
+   c. **Business Context**:
+      - What these numbers mean for the business
+      - How performance compares to expectations
 
-Please write this in clear, business-friendly language that any stakeholder can understand. Focus on insights and actions rather than technical details.
+   d. **Actionable Recommendations**:
+      - Specific actions the business should consider
+      - Areas for optimization or improvement
+
+Use clear, business-friendly language and focus only on insights derived from the actual data available.
+
+IMPORTANT: Review the technical analysis carefully. If SQL queries returned empty/null results or if it mentions no data was found, DO NOT fabricate data in your response.
+"""
+        else:
+            synthesis_prompt = f"""
+**Original User Question**: {user_question}
+
+**Technical Analysis Results**: 
+{technical_analysis}
+
+As a Business Analyst, provide a concise response:
+
+1. Check if the data is actually available from the database query. 
+   - If there's no real data available, clearly state "No data available for [time period/criteria]" 
+   - DO NOT make up or invent numbers - be honest about data availability
+
+2. If data is available:
+   - Answer the user's question directly and briefly (1-2 sentences)
+   - Mention only the most critical numbers/metrics that directly answer the question
+   - Keep your entire response under 4 sentences
+
+Be direct, precise, and to the point. The user can always ask for more details if needed.
+
+IMPORTANT: Review the technical analysis carefully. If it mentions no data was found, or if SQL queries returned empty/null results, DO NOT fabricate data in your response.
 """
         
         try:

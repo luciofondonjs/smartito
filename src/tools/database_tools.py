@@ -35,33 +35,88 @@ class SQLQueryTool(BaseTool):
         run_manager: CallbackManagerForToolRun = None
     ) -> str:
         """Execute SQL query and return results as JSON string."""
+        print("\n==== SQL QUERY EXECUTION ====")
+        print(f"SQL Query to execute: {query}")
+        
         try:
-            db = get_database_connection()
-            
             # Basic query validation
             query_lower = query.lower().strip()
-            if any(dangerous in query_lower for dangerous in ['drop', 'delete', 'truncate', 'alter', 'create']):
+            if not query_lower.startswith('select'):
+                error_msg = "Query must start with SELECT. Only read operations are allowed."
+                print(f"ERROR: {error_msg}")
                 return json.dumps({
-                    "error": "Query contains potentially dangerous operations. Only SELECT queries are allowed."
+                    "success": False,
+                    "error": error_msg,
+                    "query": query
+                })
+                
+            if any(dangerous in query_lower for dangerous in ['drop', 'delete', 'truncate', 'alter', 'create', 'insert', 'update']):
+                error_msg = "Query contains potentially dangerous operations. Only SELECT queries are allowed."
+                print(f"ERROR: {error_msg}")
+                return json.dumps({
+                    "success": False,
+                    "error": error_msg,
+                    "query": query
+                })
+            
+            print("Query validation passed. Connecting to database...")
+            
+            # Get database connection
+            try:
+                db = get_database_connection()
+                print("Database connection obtained successfully")
+            except Exception as conn_err:
+                error_msg = f"Database connection error: {str(conn_err)}"
+                print(f"ERROR: {error_msg}")
+                return json.dumps({
+                    "success": False,
+                    "error": error_msg,
+                    "query": query
                 })
             
             # Execute query
-            result_df = db.execute_query(query)
+            print("Executing query...")
+            try:
+                result_df = db.execute_query(query)
+                print(f"Query executed successfully. Rows returned: {len(result_df)}")
+            except Exception as exec_err:
+                error_msg = f"Query execution failed: {str(exec_err)}"
+                print(f"ERROR: {error_msg}")
+                return json.dumps({
+                    "success": False,
+                    "error": error_msg,
+                    "query": query
+                })
             
             # Convert to JSON-serializable format
             result_dict = {
                 "success": True,
                 "rows_returned": len(result_df),
                 "columns": list(result_df.columns),
-                "data": result_df.to_dict('records')
+                "data": result_df.to_dict('records'),
+                "has_data": len(result_df) > 0,
+                "empty_result": len(result_df) == 0,
+                "query_executed": query
             }
             
+            # Add explicit message about empty results
+            if len(result_df) == 0:
+                result_dict["message"] = "The query executed successfully but returned no data. This likely means there is no data available for the requested time period, filters, or criteria."
+                print("WARNING: Query returned 0 rows")
+            else:
+                print(f"Data returned successfully. First few values: {str(result_df.head(2))}")
+            
+            print("==== END SQL QUERY EXECUTION ====\n")
             return json.dumps(result_dict, default=str, indent=2)
             
         except Exception as e:
+            error_msg = f"Unexpected error during SQL processing: {str(e)}"
+            print(f"ERROR: {error_msg}")
+            print("==== END SQL QUERY EXECUTION ====\n")
+            
             error_dict = {
                 "success": False,
-                "error": str(e),
+                "error": error_msg,
                 "query": query
             }
             return json.dumps(error_dict, indent=2)

@@ -165,14 +165,13 @@ class MultiAgentWorkflow:
         if force_direct_answer or not questions:
             # Forzar el flujo a continuar con análisis en lugar de preguntar
             state["needs_clarification"] = False
-            state["final_response"] = "Entendido, procederé a analizar con la información disponible."
+            state["final_response"] = "Analizando su consulta..."
             return state
             
-        # Si llegamos aquí, presentamos las preguntas de clarificación normalmente
-        clarification_text = "I need some clarification to provide the best analysis:\n\n"
+        # Si llegamos aquí, presentamos las preguntas de clarificación de forma concisa
+        clarification_text = "To answer accurately:"
         for i, question in enumerate(questions, 1):
-            clarification_text += f"{i}. {question}\n"
-        clarification_text += "\nPlease provide additional details so I can give you a more accurate analysis."
+            clarification_text += f"\n{i}. {question}"
         
         state["final_response"] = clarification_text
         return state
@@ -237,16 +236,7 @@ class MultiAgentWorkflow:
         """Handle errors in the workflow."""
         error_message = state.get("error_message", "An unknown error occurred")
         
-        state["final_response"] = f"""
-I apologize, but I encountered an error while processing your request: {error_message}
-
-Please try rephrasing your question or contact support if the issue persists.
-
-Some tips for better results:
-• Be specific about time periods (e.g., "last month", "Q3 2024")
-• Mention specific markets if relevant (e.g., "Brazil", "Chile")
-• Specify device types if important (e.g., "mobile users", "desktop performance")
-"""
+        state["final_response"] = f"Error: {error_message}. Please try rephrasing your question or be more specific about time periods, markets, or device types."
         
         return state
     
@@ -359,7 +349,7 @@ Some tips for better results:
         except Exception as e:
             return {
                 "success": False,
-                "response": f"Workflow execution failed: {str(e)}",
+                "response": f"Error: {str(e)}",
                 "needs_clarification": False,
                 "clarifying_questions": [],
                 "metadata": {
