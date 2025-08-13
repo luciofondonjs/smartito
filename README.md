@@ -1,13 +1,13 @@
 # 🤖 SMARTito - Multi-Agent RAG System
 
-Un sistema de IA multi-agente para análisis de métricas de negocio usando LangGraph y LangChain.
+Un sistema de IA multi-agente para análisis de métricas de negocio usando LangGraph y LangChain, con respuestas concisas y basadas en datos reales.
 
 ## 📋 Descripción
 
 SMARTito automatiza el análisis de métricas web mediante un flujo conversacional que traduce preguntas de negocio en insights accionables con datos reales. El sistema utiliza dos agentes especializados que trabajan en conjunto:
 
-- **Business Analyst Agent**: Interpreta contexto de negocio y comunica resultados
-- **Data Analyst Agent**: Ejecuta consultas SQL y realiza análisis técnico
+- **Business Analyst Agent**: Interpreta contexto de negocio y comunica resultados de forma concisa
+- **Data Analyst Agent**: Ejecuta consultas SQL robustas y realiza análisis técnico basado en datos reales
 
 ## 🏗 Arquitectura
 
@@ -81,7 +81,13 @@ REDSHIFT_SCHEMA=amplitude
 
 ## 💻 Uso
 
-### Modo Interactivo
+### Interfaz Web con Streamlit
+```bash
+python run_streamlit.py
+```
+Esta opción lanza una interfaz de chat web estilo ChatGPT en http://localhost:8501
+
+### Modo Interactivo en Terminal
 ```bash
 python main.py
 ```
@@ -142,29 +148,55 @@ En modo interactivo:
 ## 📝 Características Técnicas
 
 ### Agentes Especializados
-- **Business Analyst**: GPT-4 optimizado para contexto de negocio
-- **Data Analyst**: GPT-4 con herramientas SQL y análisis estadístico
+- **Business Analyst**: 
+  - GPT-4 optimizado para contexto de negocio
+  - Respuestas concisas por defecto
+  - Análisis detallado bajo demanda
+  - Honestidad sobre disponibilidad de datos
+
+- **Data Analyst**: 
+  - GPT-4 con herramientas SQL avanzadas
+  - Memoria de conversación para consultas coherentes
+  - Detección y reutilización automática de parámetros
+  - Manejo explícito de datos inexistentes o futuros
 
 ### Herramientas Integradas
-- **SQL Query Tool**: Ejecución segura de consultas
+- **SQL Query Tool**: 
+  - Ejecución segura de consultas con validación
+  - Manejo correcto de divisiones decimales para cálculos precisos
+  - Detección automática de consultas vacías
+  - Logs detallados de ejecución SQL
+
 - **Data Analysis Tool**: Análisis estadístico automatizado
 - **Schema Info Tool**: Información de estructura de datos
+
+### Sistema de Memoria y Contexto
+- **Extracción de parámetros**: Detecta fechas, países y dispositivos de consultas anteriores
+- **Memoria de conversación**: Mantiene parámetros para consultas de seguimiento
+- **Análisis contextual**: Relaciona preguntas nuevas con análisis previos
+- **Preservación de filtros**: Mantiene consistencia en consultas relacionadas
 
 ### LangGraph Workflow
 - Orquestación automática entre agentes
 - Manejo de errores y validación
-- Preguntas de clarificación cuando es necesario
+- Preguntas de clarificación cuando es necesario (minimizadas)
 - Estado de conversación persistente
 
-## 🔒 Seguridad
+## 🔒 Seguridad y Calidad de Datos
 
 - Validación de consultas SQL (solo SELECT)
 - Sanitización de entradas
 - Manejo seguro de credenciales
-- Logs de auditoría
+- Logs de auditoría y depuración
+- Transparencia sobre disponibilidad de datos
+- Cálculos de conversión con precisión decimal
 
 ## 🚧 Próximas Características
 
+- [x] Respuestas concisas y centradas en el usuario
+- [x] Memoria de conversación avanzada
+- [x] Manejo robusto de datos inexistentes
+- [x] Cálculos de conversión con precisión decimal
 - [ ] Visualizaciones automáticas
 - [ ] Exportación de reportes
 - [ ] Alertas automáticas

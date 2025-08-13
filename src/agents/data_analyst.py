@@ -336,10 +336,24 @@ Please follow these steps:
    - If the query returns no rows, state "No data exists for [time period]"
    - DO NOT invent data if none is returned
 
-5. Provide your response including:
+5. IMPORTANT - DATA PRESENTATION FORMAT:
+   - When user asks for data tables, ALWAYS present results as formatted markdown tables
+   - Example markdown table format:
+     ```
+     | Fecha | Dispositivo | Tráfico | Conversión |
+     |-------|------------|---------|------------|
+     | 01-08 | Mobile     | 1500    | 3.2%       |
+     | 02-08 | Desktop    | 2300    | 4.5%       |
+     ```
+   - Make sure table columns are properly aligned
+   - Include headers with clear column names
+   - For large datasets, limit to top 10-15 rows unless asked for more
+
+6. Provide your response including:
    - The exact SQL query you executed
    - Whether data was found or not
    - Analysis of any data found
+   - PROPERLY FORMATTED DATA TABLES when the user asks for tables or detailed data
 
 EXAMPLE: If a previous question was about "conversion rates in Chile for August 2025" and the next question asks for "the complete table", use the SAME date range and country filter.
 
@@ -642,6 +656,7 @@ IMPORTANT: If the user asks about metrics for a specific time period like "Augus
                         }
                     else:
                         print("ERROR: sql_query tool not found")
+                        # If SQL tool not found, return the original response without modification
                 except Exception as e:
                     print(f"ERROR executing forced query: {str(e)}")
                 

@@ -252,22 +252,28 @@ As a Business Analyst, provide a detailed analysis of these results:
    - If there's no data or empty results, clearly state "No data available for [time period/criteria]"
    - DO NOT invent or fabricate metrics if they're not in the technical analysis
 
-2. If data IS available, provide:
+2. **TABLE PRESERVATION**:
+   - If the technical analysis includes markdown tables, PRESERVE THEM EXACTLY as is
+   - When user explicitly asks for table/datos/información tabular, include complete tables
+   - DO NOT convert tabular data to text summaries - keep them in table format
+   - Tables should appear in your response exactly as they were in the technical analysis
+
+3. If data IS available, provide:
 
    a. **Answer**: Start with a clear, direct answer to the user's question
 
    b. **Key Findings**: 
       - Main metrics and performance indicators from the data
       - Important trends or patterns observed
-      - Notable insights or anomalies
+   - Notable insights or anomalies
 
    c. **Business Context**:
-      - What these numbers mean for the business
-      - How performance compares to expectations
+   - What these numbers mean for the business
+   - How performance compares to expectations
 
    d. **Actionable Recommendations**:
-      - Specific actions the business should consider
-      - Areas for optimization or improvement
+   - Specific actions the business should consider
+   - Areas for optimization or improvement
 
 Use clear, business-friendly language and focus only on insights derived from the actual data available.
 
@@ -290,6 +296,13 @@ As a Business Analyst, provide a concise response:
    - Answer the user's question directly and briefly (1-2 sentences)
    - Mention only the most critical numbers/metrics that directly answer the question
    - Keep your entire response under 4 sentences
+   
+3. IMPORTANT - TABLES AND DATA PRESENTATION:
+   - When the user explicitly asks for "tabla", "table", "datos completos" or similar:
+     * PRESERVE any markdown tables exactly as provided by the Data Analyst
+     * DO NOT summarize tables into text - keep them in their tabular format
+     * DO NOT modify the table structure or content
+     * If needed, you can add a brief introduction before the table
 
 Be direct, precise, and to the point. The user can always ask for more details if needed.
 
